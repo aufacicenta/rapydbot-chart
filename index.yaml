@@ -1,0 +1,13 @@
+apiVersion: v1
+entries:
+  rapydbot:
+  - apiVersion: v2
+    created: "2021-07-05T02:36:57.079432999Z"
+    description: A Helm chart for Kubernetes
+    digest: 796490dc014bfac7a8d3c2e5027e9fd30ec0745a2e62e067cf0f24bf0063816a
+    name: rapydbot
+    type: application
+    urls:
+    - https://aufacicenta.github.io/rapydbot-chart/rapydbot-0.1.0.tgz
+    version: 0.1.0
+generated: "2021-07-05T02:36:57.078496468Z"
