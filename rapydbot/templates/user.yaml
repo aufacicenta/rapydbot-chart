@@ -28,6 +28,8 @@ spec:
       - name: user
         image: {{ .Values.user.image }}
         env:
+          - name: SECRET_NAME
+            value: "{{ .Values.secretsManager.secretName }}"
           - name: SKIP_SECRET_FILE
             value: "{{ not .Values.secretsManager.enabled }}"
           # Service
