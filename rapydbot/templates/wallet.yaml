@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-%s" .Release.Name "wallet" }}
+  labels:
+    {{- include "rapydbot.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "rapydbot.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rapydbot.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.secretsManager.enabled }}
+      serviceAccountName: {{ .Values.secretsManager.serviceAccount }}
+      volumes:
+        - name: rapyd-secret
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ printf "%s-%s" .Release.Name .Values.secretsManager.secretName }}
+      {{- end }}
+      containers:
+      - name: wallet
+        image: {{ .Values.wallet.image }}
+        #command: ["sh", "-c", "sleep 900"]
+        env:
+          - name: SKIP_SECRET_FILE
+            value: "{{ not .Values.secretsManager.enabled }}"
+          # Service
+          - name: NODE_ENV
+            value: "{{ .Values.env }}"
+          - name: IP_ADDRESS
+            value: "{{ .Values.wallet.ipAddress }}"
+          - name: HTTP_PORT
+            value: "{{ .Values.wallet.port }}"
+          - name: RAPYD_BASE_URL
+            value: "{{ .Values.rapyd.baseUrl }}"
+          - name: RAPYD_SALT_LENGTH
+            value: "{{ .Values.rapyd.saltLength }}"
+          {{- if not .Values.secretsManager.enabled }}
+          # MYSQL
+          - name: MYSQL_ROOT_USER
+            value: "{{ .Values.mysql.user }}"
+          - name: MYSQL_ROOT_PASSWORD
+            value: "{{ .Values.mysql.password }}"
+          - name: MYSQL_HOST
+            value: "{{ .Values.mysql.host }}"
+          - name: MYSQL_PORT
+            value: "{{ .Values.mysql.port }}"
+          - name: MYSQL_DATABASE
+            value: "{{ .Values.wallet.db_name }}"
+          #RAPYD
+          - name: RAPYD_ACCESS_KEY
+            value: "{{ .Values.rapyd.accessKey }}"
+          - name: RAPYD_SECRET_KEY
+            value: "{{ .Values.rapyd.secretkey }}"
+          {{- end }}
+        ports:
+          - containerPort: {{ .Values.wallet.port }}
+        {{- if .Values.secretsManager.enabled }}
+        volumeMounts:
+          - name: rapyd-secret
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-%s" .Release.Name "wallet-service" }}
+  labels:
+    {{- include "rapydbot.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "rapydbot.selectorLabels" . | nindent 4 }}
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.wallet.port }}
+      targetPort: {{ .Values.wallet.port }}

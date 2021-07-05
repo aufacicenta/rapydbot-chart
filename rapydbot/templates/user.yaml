@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-%s" .Release.Name "user" }}
+  labels:
+    {{- include "rapydbot.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "rapydbot.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rapydbot.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.secretsManager.enabled }}
+      serviceAccountName: {{ .Values.secretsManager.serviceAccount }}
+      volumes:
+        - name: rapyd-secret
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ printf "%s-%s" .Release.Name .Values.secretsManager.secretName }}
+      {{- end }}
+      containers:
+      - name: user
+        image: {{ .Values.user.image }}
+        env:
+          - name: SKIP_SECRET_FILE
+            value: "{{ not .Values.secretsManager.enabled }}"
+          # Service
+          - name: NODE_ENV
+            value: "{{ .Values.env }}"
+          - name: IP_ADDRESS
+            value: "{{ .Values.user.ipAddress }}"
+          - name: HTTP_PORT
+            value: "{{ .Values.user.port }}"
+          - name: HTTP_TEST_PORT
+            value: "{{ .Values.user.testPort }}"
+          - name: SERVER_ENDPOINT
+            value: "{{ .Values.user.serverEndpoint }}"
+          {{- if not .Values.secretsManager.enabled }}
+          # MYSQL
+          - name: MYSQL_ROOT_USER
+            value: "{{ .Values.mysql.user }}"
+          - name: MYSQL_ROOT_PASSWORD
+            value: "{{ .Values.mysql.password }}"
+          - name: MYSQL_HOST
+            value: "{{ .Values.mysql.host }}"
+          - name: MYSQL_PORT
+            value: "{{ .Values.mysql.port }}"
+          - name: MYSQL_DATABASE
+            value: "{{ .Values.user.db_name }}"
+          {{- end }}
+        ports:
+          - containerPort: {{ .Values.user.port }}
+        {{- if .Values.secretsManager.enabled }}
+        volumeMounts:
+          - name: rapyd-secret
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-%s" .Release.Name "user-service" }}
+  labels:
+    {{- include "rapydbot.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "rapydbot.selectorLabels" . | nindent 4 }}
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.user.port }}
+      targetPort: {{ .Values.user.port }}

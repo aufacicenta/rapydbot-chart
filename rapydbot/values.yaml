@@ -1,0 +1,45 @@
+# Default values for rapydbot.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+env: test
+
+secretsManager:
+  enabled: true
+  secretName: "service-api-key"
+  serviceAccount: rapyd-secret-sa
+
+mysql:
+  user: "admin"
+  password: "hola12345"
+  host: "db.rapydbot.local"
+  port: 3306
+
+rapyd:
+  saltLength: 8
+  baseUrl: "https://sandboxapi.rapyd.net"
+  accessKey: ""
+  secretkey: ""
+
+wallet:
+  ipAddress: "0.0.0.0"
+  port: 8080
+  image: "111975705704.dkr.ecr.us-east-2.amazonaws.com/rapydbot/wallet:latest"
+  db_name: "WALLET"
+
+user:
+  ipAddress: "0.0.0.0"
+  port: 8081
+  testPort: 4102
+  serverEndpoint: "/"
+  image: "111975705704.dkr.ecr.us-east-2.amazonaws.com/rapydbot/user:latest"
+  db_name: "USER"
+
+bot:
+  token: ""
+  certArn: ""
+  image: "111975705704.dkr.ecr.us-east-2.amazonaws.com/rapydbot/bot:latest"
+  

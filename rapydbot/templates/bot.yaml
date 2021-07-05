@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-%s" .Release.Name "bot" }}
+  labels:
+    {{- include "rapydbot.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "rapydbot.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rapydbot.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.secretsManager.enabled }}
+      serviceAccountName: {{ .Values.secretsManager.serviceAccount }}
+      volumes:
+        - name: rapyd-secret
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ printf "%s-%s" .Release.Name .Values.secretsManager.secretName }}
+      {{- end }}
+      containers:
+      - name: bot
+        image: {{ .Values.bot.image }}
+        env:
+          - name: SKIP_SECRET_FILE
+            value: "{{ not .Values.secretsManager.enabled }}"
+          # Service
+          - name: NODE_ENV
+            value: "{{ .Values.env }}"
+          - name: USER_SERVICE_URL
+            value: {{ print .Release.Name "-user-service:" .Values.user.port }}
+          - name: WALLET_SERVICE_URL
+            value: {{ print .Release.Name "-wallet-service:" .Values.wallet.port }}
+          - name: RAPYD_WEBHOOKS_SERVER_PORT
+            value: "8080"
+          {{- if not .Values.secretsManager.enabled }}
+          # Bot
+          - name: BOT_TOKEN
+            value: "{{ .Values.bot.token }}"
+          {{- end }}
+        ports:
+          - containerPort: 8080
+        {{- if .Values.secretsManager.enabled }}
+        volumeMounts:
+          - name: rapyd-secret
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-%s" .Release.Name "bot-service" }}
+  {{- if ne .Values.bot.certArn "" }}
+  annotations:
+    # Note that the backend talks over HTTP.
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    # TODO: Fill in with the ARN of your certificate.
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .Values.bot.certArn }}
+    # Only run SSL on the port named "https" below.
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+  {{- end }}
+spec:
+  selector:
+    {{- include "rapydbot.selectorLabels" . | nindent 4 }}
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+    - name: https
+      port: 443
+      targetPort: 8080
