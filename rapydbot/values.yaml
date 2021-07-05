@@ -9,12 +9,12 @@ env: test
 
 secretsManager:
   enabled: true
-  secretName: "service-api-key"
+  secretName: secret-rapydbot
   serviceAccount: rapyd-secret-sa
 
 mysql:
   user: "admin"
-  password: "hola12345"
+  password: ""
   host: "db.rapydbot.local"
   port: 3306
 
@@ -27,7 +27,7 @@ rapyd:
 wallet:
   ipAddress: "0.0.0.0"
   port: 8080
-  image: "111975705704.dkr.ecr.us-east-2.amazonaws.com/rapydbot/wallet:latest"
+  image: "public.ecr.aws/l0y7w6p3/rapydbot/wallet:latest"
   db_name: "WALLET"
 
 user:
@@ -35,11 +35,11 @@ user:
   port: 8081
   testPort: 4102
   serverEndpoint: "/"
-  image: "111975705704.dkr.ecr.us-east-2.amazonaws.com/rapydbot/user:latest"
+  image: "public.ecr.aws/l0y7w6p3/rapydbot/user:latest"
   db_name: "USER"
 
 bot:
   token: ""
   certArn: ""
-  image: "111975705704.dkr.ecr.us-east-2.amazonaws.com/rapydbot/bot:latest"
+  image: "public.ecr.aws/l0y7w6p3/rapydbot/bot:latest"
   
