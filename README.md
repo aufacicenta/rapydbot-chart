@@ -2,7 +2,7 @@
 
 ## Installation
 
-Quick start instructions for the setup and configuration of secrets-store-csi-driver using Helm.
+Quick start instructions for the setup and configuration of rapydbot using Helm.
 
 ### Prerequisites
 
