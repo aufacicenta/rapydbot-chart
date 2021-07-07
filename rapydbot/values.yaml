@@ -41,5 +41,6 @@ user:
 bot:
   token: ""
   certArn: ""
+  url: ""
   image: "public.ecr.aws/l0y7w6p3/rapydbot/bot:latest"
   
