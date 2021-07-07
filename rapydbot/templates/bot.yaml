@@ -42,7 +42,7 @@ spec:
           - name: RAPYD_WEBHOOKS_SERVER_PORT
             value: "8080"
           - name: RAPYDBOT_WEBHOOKS_ENDPOINT
-            value: "{{ .Values.bot.url }}"
+            value: "{{ .Values.bot.webHookurl }}"
           {{- if not .Values.secretsManager.enabled }}
           # Bot
           - name: BOT_TOKEN

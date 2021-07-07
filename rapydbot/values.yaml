@@ -29,6 +29,7 @@ wallet:
   port: 8080
   image: "public.ecr.aws/l0y7w6p3/rapydbot/wallet:latest"
   db_name: "WALLET"
+  webHookurl: ""
 
 user:
   ipAddress: "0.0.0.0"
@@ -41,6 +42,6 @@ user:
 bot:
   token: ""
   certArn: ""
-  url: ""
+  webHookurl: ""
   image: "public.ecr.aws/l0y7w6p3/rapydbot/bot:latest"
   

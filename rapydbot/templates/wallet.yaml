@@ -44,6 +44,8 @@ spec:
             value: "{{ .Values.rapyd.baseUrl }}"
           - name: RAPYD_SALT_LENGTH
             value: "{{ .Values.rapyd.saltLength }}"
+          - name: RAPYDBOT_WEBHOOKS_ENDPOINT
+            value: "{{ .Values.wallet.webHookurl }}"
           {{- if not .Values.secretsManager.enabled }}
           # MYSQL
           - name: MYSQL_ROOT_USER
